@@ -43,12 +43,20 @@ module.exports = shortcodes;
 function shortcodes(options) {
   var startBlock = (options || {}).startBlock || "[[";
   var endBlock = (options || {}).endBlock || "]]";
+  var captureOnly = (options || {}).captureOnly || [];
 
   if (isRemarkParser(this.Parser)) {
     var parser = this.Parser.prototype;
     parser.blockTokenizers.shortcode = shortcodeTokenizer;
     parser.blockMethods.splice(
       parser.blockMethods.indexOf("html"),
+      0,
+      "shortcode"
+    );
+
+    parser.inlineTokenizers.shortcode = shortcodeTokenizer;
+    parser.inlineMethods.splice(
+      parser.inlineMethods.indexOf("autoLink"),
       0,
       "shortcode"
     );
@@ -82,6 +90,10 @@ function shortcodes(options) {
 
     // If there is no parsed data, something fishy is up - return nothing.
     if (!parsedShortcode) return;
+
+    if (captureOnly.length > 0 && captureOnly.indexOf(parsedShortcode.identifier) === -1) {
+      return;
+    }
 
     /* Exit with true in silent mode after successful parse - never used (yet) */
     /* istanbul ignore if */

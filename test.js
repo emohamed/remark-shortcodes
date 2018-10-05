@@ -178,3 +178,159 @@ test("test attributes with equals in value", function(t) {
   tester(t, {}, inputMarkdown, outputMarkdown, ast);
   t.end();
 });
+
+test("test inline shortcodes", function(t) {
+  var inputMarkdown =
+    'Drum and Bass [[ Youtube href="https://youtube.com?q=test" ]]';
+  var outputMarkdown =
+    'Drum and Bass [[ Youtube href="https://youtube.com?q=test" ]]\n';
+  var ast = {
+    type: "root",
+    children: [
+      {
+        type: "paragraph",
+        children: [
+          { type: "text", value: "Drum and Bass " },
+          {
+            type: "shortcode",
+            identifier: "Youtube",
+            attributes: { href: "https://youtube.com?q=test" }
+          }
+        ]
+      }
+    ]
+  };
+  tester(t, {}, inputMarkdown, outputMarkdown, ast);
+  t.end();
+});
+
+test("test inline shortcodes with brackets", function(t) {
+  var inputMarkdown =
+    'Drum and Bass [ youtube href="https://youtube.com?q=test" ]';
+  var outputMarkdown =
+    'Drum and Bass [ youtube href="https://youtube.com?q=test" ]\n';
+  var ast = {
+    type: "root",
+    children: [
+      {
+        type: "paragraph",
+        children: [
+          { type: "text", value: "Drum and Bass " },
+          {
+            type: "shortcode",
+            identifier: "youtube",
+            attributes: { href: "https://youtube.com?q=test" }
+          }
+        ]
+      }
+    ]
+  };
+  tester(t, {startBlock: '[', endBlock: ']'}, inputMarkdown, outputMarkdown, ast);
+  t.end();
+});
+
+test("test inline shortcodes with brackets without spaces", function(t) {
+  var inputMarkdown =
+    'Drum and Bass [youtube href="https://youtube.com?q=test"]';
+  var outputMarkdown =
+    'Drum and Bass [ youtube href="https://youtube.com?q=test" ]\n';
+  var ast = {
+    type: "root",
+    children: [
+      {
+        type: "paragraph",
+        children: [
+          { type: "text", value: "Drum and Bass " },
+          {
+            type: "shortcode",
+            identifier: "youtube",
+            attributes: { href: "https://youtube.com?q=test" }
+          }
+        ]
+      }
+    ]
+  };
+  tester(t, {startBlock: '[', endBlock: ']'}, inputMarkdown, outputMarkdown, ast);
+  t.end();
+});
+
+test("test that shortcodes with brackets are not breaking links", function(t) {
+  var inputMarkdown =
+    'Drum and [Bass](http://google.com) [youtube href="https://youtube.com?q=test"]';
+
+  var outputMarkdown =
+    'Drum and [Bass](http://google.com) [ youtube href="https://youtube.com?q=test" ]\n';
+  var ast = {
+    type: "root",
+    children: [
+      {
+        type: "paragraph",
+        children: [
+          {
+             "type":"text",
+             "value":"Drum and "
+          },
+
+          {
+             "type":"link",
+             "title":null,
+             "url":"http://google.com",
+             "children":[
+                {
+                   "type":"text",
+                   "value":"Bass"
+                }
+             ]
+          },
+
+          {
+             "type":"text",
+             "value":" "
+          },
+
+          {
+            type: "shortcode",
+            identifier: "youtube",
+            attributes: { href: "https://youtube.com?q=test" }
+          }
+
+        ]
+      }
+    ]
+  };
+  tester(t, {startBlock: '[', endBlock: ']', captureOnly: ['youtube']}, inputMarkdown, outputMarkdown, ast);
+  t.end();
+
+});
+
+
+test("shortcodes are not parsed when they're found in code blocks", function(t) {
+  var inputMarkdown =
+    'Drum and `[Bass](http://google.com) [youtube href="https://youtube.com?q=test"]`';
+
+  var outputMarkdown =
+    'Drum and `[Bass](http://google.com) [youtube href="https://youtube.com?q=test"]`\n';
+
+  var ast = {
+    type: "root",
+    children: [
+      {
+        type: "paragraph",
+        children: [
+          {
+             "type":"text",
+             "value":"Drum and "
+          },
+
+          {
+            type: "inlineCode",
+            value: '[Bass](http://google.com) [youtube href="https://youtube.com?q=test"]'
+          }
+        ]
+      }
+    ]
+  };
+  tester(t, {startBlock: '[', endBlock: ']', captureOnly: ['youtube']}, inputMarkdown, outputMarkdown, ast);
+  t.end();
+
+});
